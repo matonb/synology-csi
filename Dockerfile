@@ -47,13 +47,36 @@ LABEL name="synology-csi" \
 #
 # NOTE: e2fsprogs, xfsprogs, nfs-utils and cifs-utils are NOT in the free UBI
 # repos; they live in the full RHEL 9 repos. This build therefore requires RHEL
-# entitlement (build on a subscribed RHEL host, or via a Red Hat certification
-# build service). Without entitlement, microdnf resolves only the UBI subset and
-# this step fails on the missing packages.
-RUN microdnf install -y \
+# entitlement. Red Hat's own certification build service injects this
+# transparently; anyone else building this Dockerfile needs to supply RH
+# credentials as BuildKit secrets `rh_username`/`rh_password` (e.g. a free
+# Red Hat Developer Subscription, which uses Simple Content Access - no
+# --auto-attach/pool needed, but the RHEL repos still have to be explicitly
+# enabled since microdnf doesn't run the subscription-manager dnf plugin that
+# would otherwise write them out). subscription-manager is installed,
+# registered, used, and removed within this single RUN so no entitlement
+# material or subscription state persists in the image; cleanup runs even if
+# the install fails, so a failed build doesn't leak a registered system.
+RUN --mount=type=secret,id=rh_username,required=true \
+    --mount=type=secret,id=rh_password,required=true \
+    microdnf install -y subscription-manager \
+    && subscription-manager register \
+        --username="$(cat /run/secrets/rh_username)" \
+        --password="$(cat /run/secrets/rh_password)" \
+    && subscription-manager refresh \
+    && subscription-manager repos \
+        --enable=rhel-9-for-$(uname -m)-baseos-rpms \
+        --enable=rhel-9-for-$(uname -m)-appstream-rpms \
+    && microdnf install -y \
         e2fsprogs xfsprogs util-linux iproute bash \
-        ca-certificates cifs-utils nfs-utils nvme-cli \
-    && microdnf clean all
+        ca-certificates cifs-utils nfs-utils nvme-cli; \
+    rc=$?; \
+    subscription-manager unregister || true; \
+    subscription-manager clean || true; \
+    microdnf remove -y subscription-manager python3-subscription-manager-rhsm \
+        subscription-manager-rhsm-certificates libdnf-plugin-subscription-manager || true; \
+    microdnf clean all; \
+    exit $rc
 
 # Red Hat certification requires a /licenses directory in the image.
 COPY LICENSE /licenses/LICENSE
