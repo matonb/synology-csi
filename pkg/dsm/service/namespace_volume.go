@@ -158,9 +158,9 @@ func (service *DsmService) createNVMeVolumeByVolume(dsm *webapi.DSM, spec *model
 	}
 
 	namespaceCloneSpec := webapi.NamespaceCloneSpec{
-		Name:         spec.BackendName,
-		SrcUuid:      srcNamespaceInfo.Uuid,
-		Location:     spec.Location,
+		Name:     spec.BackendName,
+		SrcUuid:  srcNamespaceInfo.Uuid,
+		Location: spec.Location,
 	}
 
 	if _, err := dsm.NamespaceClone(namespaceCloneSpec); err != nil {
