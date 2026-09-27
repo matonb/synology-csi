@@ -68,6 +68,7 @@ spec:
           args:
             - --v=5
             - --csi-address=$(ADDRESS)
+            - --timeout=120s
           env:
             - name: ADDRESS
               value: /var/lib/csi/sockets/pluginproxy/csi.sock
@@ -81,7 +82,7 @@ spec:
             capabilities:
               add: ["SYS_ADMIN"]
             allowPrivilegeEscalation: true
-          image: synology/synology-csi:v1.3.1
+          image: synology/synology-csi:v1.4.0
           args:
             - --nodeid=NotUsed
             - --endpoint=$(CSI_ENDPOINT)

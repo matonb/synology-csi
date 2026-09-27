@@ -2,7 +2,7 @@
 
 REGISTRY_NAME=synology
 IMAGE_NAME=synology-csi
-IMAGE_VERSION=v1.3.1
+IMAGE_VERSION=v1.4.0
 IMAGE_TAG=$(REGISTRY_NAME)/$(IMAGE_NAME):$(IMAGE_VERSION)
 
 # For now, only build linux/amd64 platform
@@ -24,6 +24,7 @@ build: bin/synology-csi-driver bin/synocli
 
 bin:
 	@mkdir -p $@
+
 
 bin/synology-csi-driver: bin FORCE
 	@echo "Compiling $@…"
