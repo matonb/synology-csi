@@ -5,5 +5,9 @@ metadata:
 spec:
   attachRequired: true # Indicates the driver requires an attach operation (TODO: ControllerPublishVolume should be implemented)
   podInfoOnMount: true
+  # File makes kubelet apply a pod's fsGroup to every volume that sets one,
+  # including ReadWriteMany. The default (ReadWriteOnceWithFSType) skips RWX
+  # volumes, which stay root-owned. Pods without an fsGroup are unaffected.
+  fsGroupPolicy: File
   volumeLifecycleModes:
     - Persistent
